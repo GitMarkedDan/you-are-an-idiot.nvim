@@ -12,7 +12,7 @@ local you_are_an_idiot = {}
 ---@class IdiotConfig
 ---@field window? vim.api.keyset.win_config Options that will be passed into vim.api.nvim_open_win()
 ---@field text? string | string[] Text that is displayed in the window
----@field flash_interval? boolean Whether the window flashes. Set to 0 to prevent flashing (this is the default settings because this is probably a epilepsy hazard).
+---@field flash_interval? number How often the window should flash. Set to 0 to prevent flashing (this is the default settings because this is probably a epilepsy hazard).
 ---@field focus_cursor? boolean Should the cursor be brought into the floating window by default
 ---@field is_scratch? boolean Should the buffers created by the floating windows be a "scratch" buffer (i.e. can `:quit` exit the window without an exclamation mark).
 ---@field min_velocity? number Maximum velocity of the floating windows
@@ -29,7 +29,7 @@ local options = {
         height = 1,
     },
     text = "You are an idiot!",
-    flashing = false,
+    flash_interval = 0,
     focus_cursor = true,
     is_scratch = true,
     min_velocity = 20,
@@ -121,38 +121,46 @@ function you_are_an_idiot.run(override)
         table.insert(windows, new_window(x, y, conf.moving))
     end
 
-    local regular_ns = vim.api.nvim_create_namespace("regular")
-    local inverse_ns = vim.api.nvim_create_namespace("inverse")
+    local flash_timer
+    if opts.flash_interval ~= 0 then
+        local regular_ns = vim.api.nvim_create_namespace("regular")
+        local inverse_ns = vim.api.nvim_create_namespace("inverse")
 
-    local function do_update(dt)
-        --reload this every frame so that it matches colorscheme
-        local normal = vim.api.nvim_get_hl(0, {name = "Normal"})
 
-        vim.api.nvim_set_hl(regular_ns, "Normal", {bg = normal.bg, fg = normal.fg})
-        vim.api.nvim_set_hl(regular_ns, "FloatBorder", {bg = normal.bg})
+        flash_timer = vim.uv.new_timer()
+        flash_timer:start(0, opts.flash_interval * 1000, vim.schedule_wrap(function()
+            local normal = vim.api.nvim_get_hl(0, {name = "Normal"})
 
-        vim.api.nvim_set_hl(inverse_ns, "Normal", {bg = normal.fg, fg = normal.bg})
-        vim.api.nvim_set_hl(regular_ns, "FloatBorder", {bg = normal.fg, fg = normal.bg})
+            vim.api.nvim_set_hl(regular_ns, "Normal", {bg = normal.bg, fg = normal.fg})
+            vim.api.nvim_set_hl(regular_ns, "FloatBorder", {bg = normal.bg})
 
-        for _, win in ipairs(windows) do
-            win:update(dt)
+            vim.api.nvim_set_hl(inverse_ns, "Normal", {bg = normal.fg, fg = normal.bg})
+            vim.api.nvim_set_hl(regular_ns, "FloatBorder", {bg = normal.fg, fg = normal.bg})
 
-            local ns = win.inverted and regular_ns or inverse_ns
+            for _, win in ipairs(windows) do
+                local ns = win.inverted and regular_ns or inverse_ns
 
-            if opts.flashing then
                 win.inverted = not win.inverted
                 vim.api.nvim_win_set_hl_ns(win.win, ns)
             end
-        end
-        vim.cmd("redraw")
+        end))
     end
+
+
 
     local timer = vim.uv.new_timer()
     timer:start(0, opts.delta_time * 1000, vim.schedule_wrap(function()
-        do_update(opts.delta_time)
+        for _, win in ipairs(windows) do
+            win:update(opts.delta_time)
+
+        end
+        vim.cmd("redraw")
     end))
 
     cleanup = function()
+        if flash_timer then
+            flash_timer:close()
+        end
         timer:close(vim.schedule_wrap(function()
             local autocmds = vim.api.nvim_get_autocmds({ group=augroup, })
             for _, autocmd in ipairs(autocmds) do
