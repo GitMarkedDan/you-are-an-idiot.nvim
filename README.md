@@ -60,7 +60,7 @@ Default configuration:
         height = 1,
     },
     text = "You are an idiot!",
-    flashing = false,
+    flash_interval = 0,
     focus_cursor = true,
     is_scratch = true,
     min_velocity = 20,
