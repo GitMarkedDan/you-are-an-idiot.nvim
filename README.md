@@ -1,12 +1,14 @@
 # you-are-an-idiot.nvim
 A simple recreation of the YouAreAnIdiot trojan (see [here](https://www.youtube.com/watch?v=ZcwxToKjJhE)) in NeoVim.
-
 > You are an idiot, ha ha ha ha ha ha ha, ha ha ha ha ha!
+
+![demo image because video broke](https://i.imgur.com/ErQHOry.png)
 
 ## Why would I want this... "trojan" in my NeoVim config?
 No idea lol, its your configuration not mine.
 
 # Usage
+
 ```lua
 -- Starts the "trojan"
 require("you-are-an-idiot").run()
