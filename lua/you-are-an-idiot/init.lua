@@ -94,7 +94,7 @@ function you_are_an_idiot.run(override)
             row=y,
         }) --[[@as vim.api.keyset.win_config]]
 
-        local win = window.new(text, opts.focus_cursor, opts.is_scratch, win_opts)
+        local win = window.new(vim.deepcopy(text, true), opts.focus_cursor, opts.is_scratch, win_opts)
 
         if rand_dir then
             local magnitude = opts.min_velocity + math.random() * (opts.max_velocity - opts.min_velocity)

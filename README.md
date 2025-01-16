@@ -55,10 +55,12 @@ Default configuration:
 {
     window = {
         relative="editor",
+        style="minimal",
         border="single",
         width = 17,
         height = 1,
     },
+    resize_window_to_fit = true,
     text = "You are an idiot!",
     flash_interval = 0,
     focus_cursor = true,
