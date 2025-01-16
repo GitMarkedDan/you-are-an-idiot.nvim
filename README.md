@@ -20,8 +20,8 @@ require("you-are-an-idiot").abort()
 Override configuration:
 ```lua
 require("you-are-an-idiot").run({
-    flashing = true,
-    reproduce_count = 10,
+    flash_interval = 0.25,
+    text = {"RTFM", "(Do it now!)"}
 })
 ```
 

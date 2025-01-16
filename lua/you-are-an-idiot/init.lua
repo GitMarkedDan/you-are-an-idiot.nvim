@@ -20,7 +20,7 @@ local you_are_an_idiot = {}
 ---@field max_velocity? number Minimum velocity of the floating windows
 ---@field reproduce_count? number How many more windows should open when one of the windows is close.
 ---@field initial? InitialWinConfig[] Configuration for each of the initial windows. Must have at least 1.
----@field delta_time? number
+---@field delta_time? number Time between each redraw of the screen.
 local options = {
     window = {
         relative="editor",
