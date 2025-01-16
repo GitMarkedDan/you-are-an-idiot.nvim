@@ -11,7 +11,8 @@ local you_are_an_idiot = {}
 
 ---@class IdiotConfig
 ---@field window? vim.api.keyset.win_config Options that will be passed into vim.api.nvim_open_win()
----@field text? string | string[] Text that is displayed in the window
+---@field resize_window_to_fit boolean If true, automatically sets the height and width to the smallest size that fits the text.
+---@field text? string | string[] Text that is displayed in the window.
 ---@field flash_interval? number How often the window should flash. Set to 0 to prevent flashing (this is the default settings because this is probably a epilepsy hazard).
 ---@field focus_cursor? boolean Should the cursor be brought into the floating window by default
 ---@field is_scratch? boolean Should the buffers created by the floating windows be a "scratch" buffer (i.e. can `:quit` exit the window without an exclamation mark).
@@ -28,6 +29,7 @@ local options = {
         width = 17,
         height = 1,
     },
+    resize_window_to_fit = true,
     text = "You are an idiot!",
     flash_interval = 0,
     focus_cursor = true,
@@ -58,17 +60,41 @@ function you_are_an_idiot.run(override)
 
     local window = require("you-are-an-idiot.window")
 
+    local text
+    if type(opts.text) == "table" then
+        text = opts.text
+    else
+        text = { opts.text }
+    end
+
+    ---@cast text string[]
+
+    local window_width
+    local window_height
+    if opts.resize_window_to_fit then
+        window_height = #text
+        window_width = 0
+        for _, str in ipairs(text) do
+            window_width = math.max(window_width, #str)
+        end
+    else
+        window_height = opts.window.height
+        window_width = opts.window.width
+    end
+
     ---@type IdiotWindow[]
     local windows = { }
 
     local augroup = vim.api.nvim_create_augroup("idiot", {})
     local function new_window(x, y, rand_dir)
         local win_opts = vim.tbl_deep_extend("force", opts.window, {
+            width=window_width,
+            height=window_height,
             col=x,
             row=y,
         }) --[[@as vim.api.keyset.win_config]]
 
-        local win = window.new(opts.text, opts.focus_cursor, opts.is_scratch, win_opts)
+        local win = window.new(text, opts.focus_cursor, opts.is_scratch, win_opts)
 
         if rand_dir then
             local magnitude = opts.min_velocity + math.random() * (opts.max_velocity - opts.min_velocity)
@@ -100,8 +126,8 @@ function you_are_an_idiot.run(override)
         return win
     end
 
-    local max_width = vim.o.columns - opts.window.width
-    local max_height = vim.o.lines - opts.window.height - 1
+    local max_width = vim.o.columns - window_width
+    local max_height = vim.o.lines - window_height - 1
 
     if opts.window.border then
         max_width = max_width - 2
