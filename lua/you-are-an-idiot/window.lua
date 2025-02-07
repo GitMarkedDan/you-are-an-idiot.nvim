@@ -54,6 +54,9 @@ function window_constructer.new(text, focus_cursor, is_scratch, win_opts)
     local line = math.floor((data.height + 1 - #text)/2)
     vim.api.nvim_buf_set_lines(data.buf, line, line+#text, false, text)
 
+    vim.bo[data.buf].modifiable = false
+    vim.bo[data.buf].filetype = "idiot"
+
     return setmetatable(data, {__index = window})
 end
 
