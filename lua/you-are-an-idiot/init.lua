@@ -11,7 +11,7 @@ local you_are_an_idiot = {}
 
 ---@class IdiotConfig
 ---@field window? vim.api.keyset.win_config Options that will be passed into vim.api.nvim_open_win()
----@field resize_window_to_fit boolean If true, automatically sets the height and width to the smallest size that fits the text.
+---@field resize_window_to_fit? boolean If true, automatically sets the height and width to the smallest size that fits the text.
 ---@field text? string | string[] Text that is displayed in the window.
 ---@field flash_interval? number How often the window should flash. Set to 0 to prevent flashing (this is the default settings because this is probably a epilepsy hazard).
 ---@field focus_cursor? boolean Should the cursor be brought into the floating window by default
@@ -83,7 +83,7 @@ function you_are_an_idiot.run(override)
     end
 
     ---@type IdiotWindow[]
-    local windows = { }
+    local windows = {}
 
     local augroup = vim.api.nvim_create_augroup("idiot", {})
     local function new_window(x, y, rand_dir)
@@ -188,7 +188,7 @@ function you_are_an_idiot.run(override)
             flash_timer:close()
         end
         timer:close(vim.schedule_wrap(function()
-            local autocmds = vim.api.nvim_get_autocmds({ group=augroup, })
+            local autocmds = vim.api.nvim_get_autocmds({group = augroup})
             for _, autocmd in ipairs(autocmds) do
                 vim.api.nvim_del_autocmd(autocmd.id)
             end

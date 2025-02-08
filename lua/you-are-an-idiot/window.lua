@@ -10,7 +10,6 @@
 ---@field inverted boolean Whether the colorscheme of the window is inverted
 ---@field bordered boolean Whether the window has a border
 ---@field text string Text in the buffer (updated with :update())
----@field private _old_text string Previous text in buffer (in case we have to update the text)
 local window = {}
 
 local window_constructer = {}
@@ -31,7 +30,6 @@ function window_constructer.new(text, focus_cursor, is_scratch, win_opts)
         inverted = false,
         bordered = not not win_opts.border,
         text = text,
-        _old_text = text,
     }
 
     data.buf = vim.api.nvim_create_buf(false, is_scratch)
