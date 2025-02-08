@@ -204,22 +204,24 @@ function you_are_an_idiot.stop()
         error("YouAreAnIdiot is not running yet! No need to abort!")
     end
 
-    if state.flash_timer then
-        state.flash_timer:close()
+    local old_state = state
+    state = nil
+
+    if old_state.flash_timer then
+        old_state.flash_timer:close()
     end
 
-    state.timer:close(vim.schedule_wrap(function()
-        local autocmds = vim.api.nvim_get_autocmds({group = state.augroup})
+    local augroup = old_state.augroup
+    old_state.timer:close(vim.schedule_wrap(function()
+        local autocmds = vim.api.nvim_get_autocmds({group = augroup})
         for _, autocmd in ipairs(autocmds) do
             vim.api.nvim_del_autocmd(autocmd.id)
         end
-        for _, win in ipairs(state.windows) do
+        for _, win in ipairs(old_state.windows) do
             vim.api.nvim_win_close(win.win, true)
             vim.api.nvim_buf_delete(win.buf, {force = true})
         end
     end))
-
-    state = nil
 end
 
 you_are_an_idiot.abort = you_are_an_idiot.stop
