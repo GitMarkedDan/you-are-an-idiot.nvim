@@ -17,6 +17,7 @@ local you_are_an_idiot = {}
 ---@field reproduce_count? number How many more windows should open when one of the windows is close.
 ---@field initial? InitialWinConfig[] Configuration for each of the initial windows. Must have at least 1.
 ---@field delta_time? number Time between each redraw of the screen.
+
 local options = {
     window = {
         relative="editor",
@@ -222,6 +223,14 @@ function you_are_an_idiot.stop()
 end
 
 you_are_an_idiot.abort = you_are_an_idiot.stop
+
+function you_are_an_idiot.toggle()
+    if you_are_an_idiot.is_running() then
+        you_are_an_idiot.stop()
+    else
+        you_are_an_idiot.start()
+    end
+end
 
 -- Checks if the "virus" is running.
 --- @return boolean

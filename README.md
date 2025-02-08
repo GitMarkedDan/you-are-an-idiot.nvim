@@ -27,14 +27,7 @@ require("you-are-an-idiot").run({
 
 ## Example
 ```lua
-local idiot = require("you-are-an-idiot")
-vim.api.nvim_create_user_command("ToggleIdiot", function()
-    if idiot.is_running() then
-        idiot.abort()
-    else
-        idiot.run()
-    end
-end, {desc = "Toggles YouAreAnIdiot"})
+vim.api.nvim_create_user_command("ToggleIdiot", require("you-are-an-idiot").toggle, {desc = "Toggles YouAreAnIdiot"})
 ```
 
 # Installation
