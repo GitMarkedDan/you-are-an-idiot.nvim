@@ -1,9 +1,5 @@
 local you_are_an_idiot = {}
 
--- I don't think I ended up using this lmao
----@class DangerousConfigs
----@field i_understand_these_options_are_dangerous boolean
-
 ---@class InitialWinConfig
 ---@field moving boolean Whether or not the window should be moving around
 ---@field x number | "mid" | "rand" The x position of the window. Set to "mid" for the center, or set to "rand" a random position.
@@ -47,10 +43,17 @@ local options = {
     delta_time = 0.05,
 }
 
----@private
-you_are_an_idiot._state = nil
+---@class IdiotState
+---@field windows IdiotWindow[]
+---@field augroup number
+---@field flash_timer uv_timer_t
+---@field timer uv_timer_t
 
----@param override IdiotConfig?
+---@type IdiotState?
+local state = nil
+
+-- Starts the "virus".
+---@param override IdiotConfig? Override default options
 function you_are_an_idiot.start(override)
     if you_are_an_idiot.is_running() then
         error("YouAreAnIdiot is already running! Enjoy!")
@@ -184,7 +187,7 @@ function you_are_an_idiot.start(override)
         vim.cmd("redraw")
     end))
 
-    you_are_an_idiot._state = {
+    state = {
         windows = windows,
         timer = timer,
         flash_timer = flash_timer,
@@ -194,12 +197,11 @@ end
 
 you_are_an_idiot.run = you_are_an_idiot.start
 
+-- Stops the virus.
 function you_are_an_idiot.stop()
     if not you_are_an_idiot.is_running() then
         error("YouAreAnIdiot is not running yet! No need to abort!")
     end
-
-    local state = you_are_an_idiot._state
 
     if state.flash_timer then
         state.flash_timer:close()
@@ -216,19 +218,23 @@ function you_are_an_idiot.stop()
         end
     end))
 
-    you_are_an_idiot._state = nil
+    state = nil
 end
 
 you_are_an_idiot.abort = you_are_an_idiot.stop
 
+-- Checks if the "virus" is running.
+--- @return boolean
 function you_are_an_idiot.is_running()
-    return not not you_are_an_idiot._state
+    return not not state
 end
 
+---@return IdiotState? state State of the "virus". Returns nil if it isn't running.
 function you_are_an_idiot.current_state()
-    return you_are_an_idiot._state
+    return state
 end
 
+-- Use this to modify the default options.
 ---@param opts IdiotConfig
 function you_are_an_idiot.setup(opts)
     options = vim.tbl_deep_extend("force", options, opts)
