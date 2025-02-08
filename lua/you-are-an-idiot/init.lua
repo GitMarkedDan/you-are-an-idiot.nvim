@@ -47,10 +47,11 @@ local options = {
     delta_time = 0.05,
 }
 
-local cleanup = nil
+---@private
+you_are_an_idiot._state = nil
 
 ---@param override IdiotConfig?
-function you_are_an_idiot.run(override)
+function you_are_an_idiot.start(override)
     if you_are_an_idiot.is_running() then
         error("YouAreAnIdiot is already running! Enjoy!")
     end
@@ -183,34 +184,49 @@ function you_are_an_idiot.run(override)
         vim.cmd("redraw")
     end))
 
-    cleanup = function()
-        if flash_timer then
-            flash_timer:close()
-        end
-        timer:close(vim.schedule_wrap(function()
-            local autocmds = vim.api.nvim_get_autocmds({group = augroup})
-            for _, autocmd in ipairs(autocmds) do
-                vim.api.nvim_del_autocmd(autocmd.id)
-            end
-            for _, win in ipairs(windows) do
-                vim.api.nvim_win_close(win.win, true)
-                vim.api.nvim_buf_delete(win.buf, {force = true})
-            end
-        end))
-        cleanup = nil
-    end
+    you_are_an_idiot._state = {
+        windows = windows,
+        timer = timer,
+        flash_timer = flash_timer,
+        augroup = augroup,
+    }
 end
 
-function you_are_an_idiot.is_running()
-    return not not cleanup
-end
+you_are_an_idiot.run = you_are_an_idiot.start
 
-function you_are_an_idiot.abort()
+function you_are_an_idiot.stop()
     if not you_are_an_idiot.is_running() then
         error("YouAreAnIdiot is not running yet! No need to abort!")
     end
 
-    (cleanup --[[@as fun()]])()
+    local state = you_are_an_idiot._state
+
+    if state.flash_timer then
+        state.flash_timer:close()
+    end
+
+    state.timer:close(vim.schedule_wrap(function()
+        local autocmds = vim.api.nvim_get_autocmds({group = state.augroup})
+        for _, autocmd in ipairs(autocmds) do
+            vim.api.nvim_del_autocmd(autocmd.id)
+        end
+        for _, win in ipairs(state.windows) do
+            vim.api.nvim_win_close(win.win, true)
+            vim.api.nvim_buf_delete(win.buf, {force = true})
+        end
+    end))
+
+    you_are_an_idiot._state = nil
+end
+
+you_are_an_idiot.abort = you_are_an_idiot.stop
+
+function you_are_an_idiot.is_running()
+    return not not you_are_an_idiot._state
+end
+
+function you_are_an_idiot.current_state()
+    return you_are_an_idiot._state
 end
 
 ---@param opts IdiotConfig
